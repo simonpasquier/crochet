@@ -40,7 +40,14 @@ type webhookPayload struct {
 
 type request struct {
 	*webhookPayload
-	Remote string `json:"remote_address"`
+	Remote    string   `json:"remoteAddress"`
+	Timestamp jsonTime `json:"timestamp"`
+}
+
+type jsonTime time.Time
+
+func (t jsonTime) MarshalJSON() ([]byte, error) {
+	return []byte(time.Time(t).Format("\"2006-01-02T15:04:05.999\"")), nil
 }
 
 type store struct {
@@ -99,6 +106,7 @@ func (s *store) postHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	s.add(&request{
 		Remote:         r.RemoteAddr,
+		Timestamp:      jsonTime(time.Now()),
 		webhookPayload: &p,
 	})
 
@@ -145,7 +153,7 @@ func main() {
 	}()
 
 	http.HandleFunc("/metrics", promhttp.Handler().ServeHTTP)
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/requests/", func(w http.ResponseWriter, r *http.Request) {
 		logger.Printf("Processing %q request from %s", r.Method, r.RemoteAddr)
 		switch r.Method {
 		case "GET":
