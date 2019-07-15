@@ -18,6 +18,7 @@ export default {
     return {
       fields: [
         'timestamp',
+        'receiver',
         {
           key: 'remoteAddress',
           formatter: value => {
