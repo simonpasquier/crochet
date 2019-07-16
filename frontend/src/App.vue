@@ -1,12 +1,29 @@
 <template>
 <div>
-  <b-table striped hover :items="requests" :fields="fields" :tbody-tr-class="rowClass"></b-table>
-
   <ul v-if="errors && errors.length">
-    <li v-for="error of errors">
+    <li v-for="(error, index) in errors" :key="index">
       {{error.message}}
     </li>
   </ul>
+
+  <b-table striped hover :items="requests" :fields="fields" :tbody-tr-class="rowClass">
+    <template slot="details" slot-scope="row">
+      <b-button size="sm" @click="row.toggleDetails" class="mr-2">
+        {{ row.detailsShowing ? 'Hide' : 'Show'}}
+      </b-button>
+    </template>
+    <template slot="row-details" slot-scope="row">
+      <b-list-group>
+        <template v-for="(alert, index) in row.item.alerts">
+          <b-list-group horizontal :key="index">
+            <template v-for="(value, name) in alert.labels">
+              <b-list-group-item :key="name" :variant="alert.status === 'firing' ? 'danger' : 'success'">{{name}}: {{value}}</b-list-group-item>
+            </template>
+          </b-list-group>
+        </template>
+      </b-list-group>
+    </template>
+  </b-table>
 </div>
 </template>
 
@@ -16,8 +33,10 @@ import axios from 'axios'
 export default {
   data() {
     return {
+      sortBy: 'timestamp',
+      sortDesc: 'true',
       fields: [
-        'timestamp',
+        {key: 'timestamp', sortable: true},
         'receiver',
         {
           key: 'remoteAddress',
@@ -38,13 +57,14 @@ export default {
           key: 'alerts',
           formatter: value => {
             var firing = 0
-            value.forEach(function(item, index) {
+            value.forEach(function(item) {
               if (item.status == 'resolved') return
               firing++
             })
             return firing + ' firing / ' + (value.length - firing) + ' resolved'
           }
-        }
+        },
+        'details'
       ],
       requests: [],
       errors: []
@@ -64,7 +84,7 @@ export default {
   },
 
   methods: {
-    rowClass(item, type) {
+    rowClass(item) {
       if (!item) return
       if (item.status === 'firing') return 'table-danger'
       return 'table-success'
