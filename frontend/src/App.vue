@@ -6,7 +6,21 @@
     </li>
   </ul>
 
-  <b-table striped hover :items="requests" :fields="fields" :tbody-tr-class="rowClass">
+  <b-table
+    hover
+    striped
+    show-empty
+    :items="filtered"
+    :fields="fields"
+    :sort-by.sync="sortBy"
+    :sort-desc.sync="sortDesc"
+    :tbody-tr-class="rowClass"
+  >
+    <template slot="top-row" slot-scope="{ fields }">
+      <td v-for="field in fields" :key="field.key">
+        <input v-if="field.key != 'details' && field.key != 'alerts'" v-model="filters[field.key]" :placeholder="field.label">
+      </td>
+    </template>
     <template slot="details" slot-scope="row">
       <b-button size="sm" @click="row.toggleDetails" class="mr-2">
         {{ row.detailsShowing ? 'Hide' : 'Show'}}
@@ -34,7 +48,7 @@ export default {
   data() {
     return {
       sortBy: 'timestamp',
-      sortDesc: 'true',
+      sortDesc: true,
       fields: [
         {key: 'timestamp', sortable: true},
         'receiver',
@@ -66,21 +80,38 @@ export default {
         },
         'details'
       ],
-      requests: [],
+      filters: {
+        'timestamp': '',
+        'receiver': '',
+        'remoteAddress': '',
+        'groupKey': '',
+        'groupLabels': '',
+      },
+      items: [],
       errors: []
     }
   },
 
-  // Fetches requests when the component is created.
+  // Fetches items when the component is created.
   created() {
     axios.get('http://localhost:8080/requests/')
     .then(response => {
       // JSON responses are automatically parsed.
-      this.requests = response.data
+      this.items = response.data
     })
     .catch(e => {
       this.errors.push(e)
     })
+  },
+
+  computed: {
+    filtered() {
+      const filtered = this.items.filter(item => {
+        return Object.keys(this.filters).every(key =>
+            String(item[key]).includes(this.filters[key]))
+      })
+      return filtered.length > 0 ? filtered : []
+    }
   },
 
   methods: {
