@@ -1,7 +1,7 @@
 FROM busybox
 
-COPY ./webhook_ui /webhook_ui
+COPY ./crochet /crochet
 
 EXPOSE 8080
-ENTRYPOINT [ "/webhook_ui" ]
+ENTRYPOINT [ "/crochet" ]
 CMD []

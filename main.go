@@ -17,7 +17,7 @@ import (
 	"github.com/prometheus/alertmanager/template"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/simonpasquier/webhook_ui/assets"
+	"github.com/simonpasquier/crochet/assets"
 )
 
 var (

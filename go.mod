@@ -1,4 +1,4 @@
-module github.com/simonpasquier/webhook_ui
+module github.com/simonpasquier/crochet
 
 go 1.12
 

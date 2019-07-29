@@ -11,7 +11,7 @@ import (
 	"github.com/shurcooL/vfsgen"
 	"github.com/simonpasquier/modtimevfs"
 
-	"github.com/simonpasquier/webhook_ui/assets"
+	"github.com/simonpasquier/crochet/assets"
 )
 
 func main() {
