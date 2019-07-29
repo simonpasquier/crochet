@@ -116,6 +116,8 @@ github.com/shurcooL/httpfs v0.0.0-20171119174359-809beceb2371 h1:SWV2fHctRpRrp49
 github.com/shurcooL/httpfs v0.0.0-20171119174359-809beceb2371/go.mod h1:ZY1cvUeJuFPAdZ/B6v7RHavJWZn2YPVFQ1OSXhCGOkg=
 github.com/shurcooL/vfsgen v0.0.0-20180825020608-02ddb050ef6b h1:rKVW5h3pEu8gGxD+ZlOmBvFYAxXLCYeQv/eg+t6QvLQ=
 github.com/shurcooL/vfsgen v0.0.0-20180825020608-02ddb050ef6b/go.mod h1:TrYk7fJVaAttu97ZZKrO9UbRa8izdowaMIZcxYMbVaw=
+github.com/simonpasquier/modtimevfs v0.0.0-20181113163803-9c7e695b2052 h1:Oso9htOlVXNXwAd1UxltF6iLL+NN+WbMvr5Lvn8z45Q=
+github.com/simonpasquier/modtimevfs v0.0.0-20181113163803-9c7e695b2052/go.mod h1:uMFM9sltZcwvw18aCJaXjKxrqa6CEfD/VDGuU/+IAeI=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
 github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

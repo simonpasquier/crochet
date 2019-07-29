@@ -16,6 +16,8 @@ import (
 
 	"github.com/prometheus/alertmanager/template"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	"github.com/simonpasquier/webhook_ui/assets"
 )
 
 var (
@@ -153,7 +155,7 @@ func main() {
 	}()
 
 	http.HandleFunc("/metrics", promhttp.Handler().ServeHTTP)
-	http.HandleFunc("/requests/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/notifications/", func(w http.ResponseWriter, r *http.Request) {
 		logger.Printf("Processing %q request from %s", r.Method, r.RemoteAddr)
 		switch r.Method {
 		case "GET":
@@ -164,6 +166,7 @@ func main() {
 			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
 	})
+	http.Handle("/", http.FileServer(assets.Assets))
 
 	wg.Add(1)
 	logger.Println("Listening on", listen)
