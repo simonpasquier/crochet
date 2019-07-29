@@ -23,7 +23,6 @@ import (
 var (
 	help   bool
 	listen string
-	status int
 	rnd    = rand.New(rand.NewSource(time.Now().UnixNano()))
 	logger = log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lmicroseconds)
 )
@@ -31,7 +30,6 @@ var (
 func init() {
 	flag.BoolVar(&help, "help", false, "Help message")
 	flag.StringVar(&listen, "listen-address", ":8080", "Listen address")
-	flag.IntVar(&status, "http-status", 200, "HTTP status response code")
 }
 
 type webhookPayload struct {

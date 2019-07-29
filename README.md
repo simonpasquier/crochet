@@ -1,25 +1,30 @@
-A minimalist UI to receive and display AlertManager webhook requests.
+Crochet is an [AlertManager](https://prometheus.io/docs/alerting/alertmanager/)
+receiver that stores notifications in memory with a simple UI to view/filter.
 
-# Usage
+Notifications are processed by the `/api/notifications/` endpoint
 
-```
-  -help
-        Help message
-  -listen-address string
-        Listen address (default ":8080")
-```
+## Usage
 
-You can make the server wait an extra period of time before returning to the client.
+Configuration of AlertManager:
 
 ```
-curl http://localhost:8080/?sleep=1s
+route:
+  receiver: webhook
+  [...]
+
+receivers:
+- name: webhook
+  webhook_configs:
+  - url: 'http://localhost:8080/api/notifications/'
+    send_resolved: true
 ```
 
-The `sleep` parameter can be any duration string supported by
-[`time.ParseDuration()`](https://golang.org/pkg/time/#ParseDuration).
-
-You can randomize the sleep duration too.
+Start `crochet`:
 
 ```
-curl 'http://localhost:8080/?sleep=1s&random'
+docker run -p 8080:8080 quay.io/simonpasquier/crochet
 ```
+
+## License
+
+Apache License 2.0, see [LICENSE](https://github.com/simonpasquier/crochet/blob/master/LICENSE).
