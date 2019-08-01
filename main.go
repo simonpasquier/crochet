@@ -109,16 +109,6 @@ func (s *store) postHandler(w http.ResponseWriter, r *http.Request) {
 		Timestamp:      jsonTime(time.Now()),
 		webhookPayload: &p,
 	})
-
-	// Wait an optional time before returning to the client.
-	q := r.URL.Query()
-	if d, err := time.ParseDuration(q.Get("sleep")); err == nil {
-		if _, ok := q["random"]; ok {
-			d = time.Duration(float64(d) * rnd.Float64())
-		}
-		logger.Printf("Sleeping for %s", d)
-		time.Sleep(d)
-	}
 }
 
 func (s *store) getHandler(w http.ResponseWriter, r *http.Request) {
