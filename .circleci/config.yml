@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - checkout
-      - run: cd frontend && yarn install
+      - run: cd frontend && yarn install --offline
       - run: make format
       - run: make build
       - run: git diff --exit-code
