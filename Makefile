@@ -12,7 +12,7 @@ test:
 
 .PHONY: assets
 assets:
-	cd frontend && yarn run build
+	cd frontend && yarn --offline run build
 	GO111MODULE=on go generate -x -v ./assets/.
 	GO111MODULE=on gofmt -w ./assets/assets_vfsdata.go
 
