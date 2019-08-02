@@ -1,0 +1,46 @@
+version: 2.1
+jobs:
+  build:
+    docker:
+      - image: circleci/golang
+    env:
+      GO111MODULE: on
+
+    steps:
+      - checkout
+      - run: make format
+      - run: make build
+      - run: git diff --exit-code
+      - persist_to_workspace:
+          root: .
+          paths:
+          - crochet
+
+  push_image:
+    docker:
+    - image: circleci/golang
+
+    steps:
+    - checkout
+    - setup_remote_docker
+    - attach_workspace:
+        at: .
+    - run: docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD quay.io
+    - run: docker build -t quay.io/simonpasquier/crochet:latest .
+    - run: docker push quay.io/simonpasquier/crochet
+
+workflows:
+  version: 2
+  main:
+    jobs:
+    - build:
+        filters:
+          tags:
+            only: /.*/
+    - push_image:
+        context: Quay
+        requires:
+        - build
+        filters:
+          branches:
+            only: master
