@@ -108,7 +108,7 @@ export default {
     filtered() {
       const filtered = this.items.filter(item => {
         return Object.keys(this.filters).every(key =>
-            String(item[key]).includes(this.filters[key]))
+            JSON.stringify(item[key]).includes(this.filters[key]))
       })
       return filtered.length > 0 ? filtered : []
     }
