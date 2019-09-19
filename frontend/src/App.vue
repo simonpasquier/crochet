@@ -30,6 +30,8 @@
       <b-list-group>
         <template v-for="(alert, index) in row.item.alerts">
           <b-list-group horizontal :key="index">
+            <b-list-group-item :key="start" :variant="alert.status === 'firing' ? 'danger' : 'success'">{{alert.startsAt | formatDate }}</b-list-group-item>
+            <b-list-group-item :key="end" :variant="alert.status === 'firing' ? 'danger' : 'success'">{{alert.endsAt | formatDate }}</b-list-group-item>
             <template v-for="(value, name) in alert.labels">
               <b-list-group-item :key="name" :variant="alert.status === 'firing' ? 'danger' : 'success'">{{name}}: {{value}}</b-list-group-item>
             </template>
@@ -50,7 +52,13 @@ export default {
       sortBy: 'timestamp',
       sortDesc: true,
       fields: [
-        {key: 'timestamp', sortable: true},
+        {
+          key: 'timestamp',
+          sortable: true,
+          formatter: value => {
+            return this.$options.filters.formatDate(value)
+          }
+        },
         'receiver',
         {
           key: 'remoteAddress',
