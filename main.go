@@ -32,18 +32,21 @@ func init() {
 	flag.StringVar(&listen, "listen-address", ":8080", "Listen address")
 }
 
+// webhookPayload represents the raw data received from Alertmanager.
 type webhookPayload struct {
 	*template.Data
 	Version  string `json:"version"`
 	GroupKey string `json:"groupKey"`
 }
 
+// request represents a notification received from Alertmanager.
 type request struct {
 	*webhookPayload
 	Remote    string    `json:"remoteAddress"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
+// store manages Alertmanager notifications.
 type store struct {
 	requests []*request
 

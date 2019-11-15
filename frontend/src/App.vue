@@ -102,7 +102,7 @@ export default {
 
   // Fetches items when the component is created.
   created() {
-    axios.get('http://localhost:8080/api/notifications/')
+    axios.get('/api/notifications/')
     .then(response => {
       // JSON responses are automatically parsed.
       this.items = response.data
