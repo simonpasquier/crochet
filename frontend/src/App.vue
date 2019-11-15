@@ -1,10 +1,8 @@
 <template>
 <div>
-  <ul v-if="errors && errors.length">
-    <li v-for="(error, index) in errors" :key="index">
-      {{error.message}}
-    </li>
-  </ul>
+  <div v-if="apiError">
+    <b-alert show variant="warning">{{ apiError.message }}</b-alert>
+  </div>
 
   <b-table
     hover
@@ -96,20 +94,18 @@ export default {
         'groupLabels': '',
       },
       items: [],
-      errors: []
+      apiError: "",
     }
   },
 
   // Fetches items when the component is created.
   created() {
-    axios.get('/api/notifications/')
-    .then(response => {
-      // JSON responses are automatically parsed.
-      this.items = response.data
-    })
-    .catch(e => {
-      this.errors.push(e)
-    })
+    this.fetchItems();
+
+    // Refresh list every 5 seconds.
+    setInterval(function () {
+      this.fetchItems()
+    }.bind(this), 5000);
   },
 
   computed: {
@@ -123,6 +119,18 @@ export default {
   },
 
   methods: {
+    fetchItems() {
+      axios.get('/api/notifications/')
+      .then(response => {
+        // JSON responses are automatically parsed.
+        this.items = response.data
+        this.apiError = null
+      })
+      .catch(e => {
+        this.apiError = e
+      })
+    },
+
     rowClass(item) {
       if (!item) return
       if (item.status === 'firing') return 'table-danger'
