@@ -49,7 +49,6 @@ func main() {
 	http.Handle("/", http.FileServer(assets.Assets))
 	http.HandleFunc("/metrics", promhttp.Handler().ServeHTTP)
 
-	notifAPI := newNotificationAPI(ds)
 	apiDuration := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name: "crochet_http_requests_duration_seconds",
@@ -57,9 +56,13 @@ func main() {
 		},
 		[]string{"code", "method", "path"},
 	)
+	prometheus.MustRegister(apiDuration)
+	notifAPI := newNotificationAPI(ds)
 	notifDuration := apiDuration.MustCurryWith(prometheus.Labels{"path": "/api/notifications"})
-	prometheus.MustRegister(notifDuration)
 	http.Handle("/api/notifications/", promhttp.InstrumentHandlerDuration(notifDuration, http.HandlerFunc(notifAPI.Handle)))
+	incidentAPI := newIncidentAPI(ds)
+	incidentDuration := apiDuration.MustCurryWith(prometheus.Labels{"path": "/api/incidents"})
+	http.Handle("/api/incidents/", promhttp.InstrumentHandlerDuration(incidentDuration, http.HandlerFunc(incidentAPI.Handle)))
 
 	// Start the HTTP server.
 	wg.Add(1)

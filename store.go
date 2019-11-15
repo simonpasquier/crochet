@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/prometheus/alertmanager/template"
@@ -38,6 +39,24 @@ func (i *incident) Key() string {
 	return i.first.Key()
 }
 
+func (i *incident) Alerts() template.Alerts {
+	return i.last.Alerts
+}
+
+func (i *incident) Duration() time.Duration {
+	if i.first == nil || i.last == nil {
+		return time.Duration(0)
+	}
+	if i.IsResolved() {
+		return i.last.Timestamp.Sub(i.first.Timestamp)
+	}
+	return time.Now().Sub(i.first.Timestamp)
+}
+
+func (i *incident) IsResolved() bool {
+	return i.last.Status == statusResolved
+}
+
 func (i *incident) Update(n *notification) {
 	if i.first == nil {
 		i.first = n
@@ -45,17 +64,6 @@ func (i *incident) Update(n *notification) {
 	if i.last == nil || n.Timestamp.After(i.last.Timestamp) {
 		i.last = n
 	}
-}
-
-func (i *incident) Duration() time.Duration {
-	if i.first == nil || i.last == nil {
-		return time.Duration(0)
-	}
-	return i.last.Timestamp.Sub(i.first.Timestamp)
-}
-
-func (i *incident) IsResolved() bool {
-	return i.last.Status == statusResolved
 }
 
 // store manages Alertmanager notifications and incidents.
@@ -108,15 +116,33 @@ func (s *store) listNotifications() []*notification {
 	return notifications
 }
 
-func (s *store) getIncident(n *notification) *incident {
+func (s *store) getIncident(k string) *incident {
 	var i *incident
 	done := make(chan struct{})
 	s.actionc <- func() {
 		defer close(done)
-		i, _ = s.incidents[n.Key()]
+		i, _ = s.incidents[k]
 	}
 	<-done
 	return i
+}
+
+func (s *store) listIncidents() []*incident {
+	var incidents []*incident
+	done := make(chan struct{})
+	s.actionc <- func() {
+		defer close(done)
+		keys := make([]string, 0, len(s.incidents))
+		for k := range s.incidents {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			incidents = append(incidents, s.incidents[k])
+		}
+	}
+	<-done
+	return incidents
 }
 
 func (s *store) updateIncident(n *notification) *incident {
