@@ -39,8 +39,8 @@ type webhookPayload struct {
 	GroupKey string `json:"groupKey"`
 }
 
-// request represents a notification received from Alertmanager.
-type request struct {
+// notification represents a notification received from Alertmanager.
+type notification struct {
 	*webhookPayload
 	Remote    string    `json:"remoteAddress"`
 	Timestamp time.Time `json:"timestamp"`
@@ -48,17 +48,17 @@ type request struct {
 
 // store manages Alertmanager notifications.
 type store struct {
-	requests []*request
+	notifications []*notification
 
 	actionc chan func()
 	quitc   chan struct{}
 }
 
 func (s *store) stop() {
-	s.quitc <- struct{}{}
+	close(s.quitc)
 }
 
-func (s *store) loop() {
+func (s *store) run() {
 	for {
 		select {
 		case <-s.quitc:
@@ -69,24 +69,28 @@ func (s *store) loop() {
 	}
 }
 
-func (s *store) add(r *request) {
+func (s *store) add(n *notification) {
 	s.actionc <- func() {
-		s.requests = append(s.requests, r)
+		s.notifications = append(s.notifications, n)
 	}
 }
 
-func (s *store) list() []*request {
-	var reqs []*request
+func (s *store) list() []*notification {
+	var notifications []*notification
 	done := make(chan struct{})
 	s.actionc <- func() {
 		defer close(done)
-		reqs = s.requests
+		notifications = s.notifications
 	}
 	<-done
-	return reqs
+	return notifications
 }
 
-func (s *store) postHandler(w http.ResponseWriter, r *http.Request) {
+type api struct {
+	store *store
+}
+
+func (a *api) postNotification(w http.ResponseWriter, r *http.Request) {
 
 	if r.Header.Get("Content-Type") != "application/json" {
 		logger.Printf("Invalid Content-Type: %q", r.Header.Get("Content-Type"))
@@ -101,17 +105,17 @@ func (s *store) postHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	s.add(&request{
+	a.store.add(&notification{
 		Remote:         r.RemoteAddr,
 		Timestamp:      time.Now(),
 		webhookPayload: &p,
 	})
 }
 
-func (s *store) getHandler(w http.ResponseWriter, r *http.Request) {
+func (a *api) listNotifications(w http.ResponseWriter, r *http.Request) {
 	enc := json.NewEncoder(w)
 
-	err := enc.Encode(s.list())
+	err := enc.Encode(a.store.list())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(w, err)
@@ -127,26 +131,28 @@ func main() {
 		os.Exit(0)
 	}
 
-	s := store{
-		requests: make([]*request, 0),
-		actionc:  make(chan func()),
-		quitc:    make(chan struct{}),
+	ds := &store{
+		notifications: make([]*notification, 0),
+		actionc:       make(chan func()),
+		quitc:         make(chan struct{}),
 	}
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
-		s.loop()
+		ds.run()
 		wg.Done()
 	}()
+
+	endpoint := &api{store: ds}
 
 	http.HandleFunc("/metrics", promhttp.Handler().ServeHTTP)
 	http.HandleFunc("/api/notifications/", func(w http.ResponseWriter, r *http.Request) {
 		logger.Printf("Processing %q request from %s", r.Method, r.RemoteAddr)
 		switch r.Method {
 		case "GET":
-			s.getHandler(w, r)
+			endpoint.listNotifications(w, r)
 		case "POST":
-			s.postHandler(w, r)
+			endpoint.postNotification(w, r)
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
@@ -156,11 +162,12 @@ func main() {
 	wg.Add(1)
 	logger.Println("Listening on", listen)
 	srv := &http.Server{Addr: listen}
+	shutdown := make(chan struct{})
 	go func() {
 		defer wg.Done()
 		err := srv.ListenAndServe()
 		select {
-		case <-s.quitc:
+		case <-shutdown:
 			return
 		default:
 			logger.Fatal(err)
@@ -170,9 +177,10 @@ func main() {
 	term := make(chan os.Signal, 1)
 	signal.Notify(term, os.Interrupt, syscall.SIGTERM)
 	<-term
+	close(shutdown)
 
 	logger.Println("Received SIGTERM, exiting gracefully...")
-	close(s.quitc)
 	srv.Shutdown(context.Background())
+	ds.stop()
 	wg.Wait()
 }
