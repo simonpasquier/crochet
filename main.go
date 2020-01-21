@@ -46,7 +46,13 @@ func main() {
 	}()
 
 	// Setup HTTP handlers.
-	http.Handle("/", http.FileServer(assets.Assets))
+	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		if req.Method != "GET" {
+			http.Error(w, fmt.Sprintf("method %q not allowed", req.Method), http.StatusMethodNotAllowed)
+			return
+		}
+		http.FileServer(assets.Assets).ServeHTTP(w, req)
+	})
 	http.HandleFunc("/metrics", promhttp.Handler().ServeHTTP)
 
 	apiDuration := prometheus.NewHistogramVec(
