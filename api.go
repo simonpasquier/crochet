@@ -87,6 +87,7 @@ func (a *notificationAPI) list(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, err)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
 }
 
 func (a *notificationAPI) Handle(w http.ResponseWriter, r *http.Request) {
@@ -143,4 +144,6 @@ func (a *incidentAPI) list(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, err)
 		return
 	}
+
+	w.Header().Set("Content-Type", "application/json")
 }

@@ -104,10 +104,10 @@ export default {
   created() {
     this.fetchItems();
 
-    // Refresh list every 5 seconds.
+    // Refresh list every minute.
     setInterval(function () {
       this.fetchItems()
-    }.bind(this), 5000);
+    }.bind(this), 60000);
   },
 
   computed: {
