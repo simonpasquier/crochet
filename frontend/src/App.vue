@@ -14,28 +14,30 @@
     :sort-desc.sync="sortDesc"
     :tbody-tr-class="rowClass"
   >
-    <template slot="top-row" slot-scope="{ fields }">
+    <template v-slot:top-row="{ fields }">
       <td v-for="field in fields" :key="field.key">
-        <input v-if="field.key != 'details' && field.key != 'alerts'" v-model="filters[field.key]" :placeholder="field.label">
+        <input v-if="field.key != 'show_details' && field.key != 'alerts'" v-model="filters[field.key]" :placeholder="field.label">
       </td>
     </template>
-    <template slot="details" slot-scope="row">
+    <template v-slot:cell(show_details)="row">
       <b-button size="sm" @click="row.toggleDetails" class="mr-2">
         {{ row.detailsShowing ? 'Hide' : 'Show'}}
       </b-button>
     </template>
-    <template slot="row-details" slot-scope="row">
-      <b-list-group>
+    <template v-slot:row-details="row">
+      <b-container class="border">
         <template v-for="(alert, index) in row.item.alerts">
-          <b-list-group horizontal :key="index">
-            <b-list-group-item :key="start" :variant="alert.status === 'firing' ? 'danger' : 'success'">{{alert.startsAt | formatDate }}</b-list-group-item>
-            <b-list-group-item :key="end" :variant="alert.status === 'firing' ? 'danger' : 'success'">{{alert.endsAt | formatDate }}</b-list-group-item>
-            <template v-for="(value, name) in alert.labels">
-              <b-list-group-item :key="name" :variant="alert.status === 'firing' ? 'danger' : 'success'">{{name}}: {{value}}</b-list-group-item>
-            </template>
-          </b-list-group>
+          <b-row :key="index">
+            <b-col :key="start" :variant="alert.status === 'firing' ? 'danger' : 'success'">{{alert.startsAt | formatDate }}</b-col>
+            <b-col :key="end" :variant="alert.status === 'firing' ? 'danger' : 'success'">{{alert.endsAt | formatDate }}</b-col>
+            <b-col>
+              <template v-for="(value, name) in alert.labels">
+                <b-list-group-item :key="name" :variant="alert.status === 'firing' ? 'danger' : 'success'"  class="flex-fill">{{name}}: {{value}}</b-list-group-item>
+              </template>
+            </b-col>
+          </b-row>
         </template>
-      </b-list-group>
+      </b-container>
     </template>
   </b-table>
 </div>
@@ -84,7 +86,7 @@ export default {
             return firing + ' firing / ' + (value.length - firing) + ' resolved'
           }
         },
-        'details'
+        'show_details'
       ],
       filters: {
         'timestamp': '',
