@@ -1,7 +1,7 @@
 Crochet is an [AlertManager](https://prometheus.io/docs/alerting/alertmanager/)
 receiver that stores notifications in memory with a simple UI to view/filter.
 
-Notifications are processed by the `/api/notifications/` endpoint
+Notifications are processed by the `/api/notifications/` endpoint.
 
 ## Usage
 
