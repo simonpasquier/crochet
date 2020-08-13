@@ -1,21 +1,34 @@
-version: 2
+version: 2.1
+
+orbs:
+  go: circleci/go@0.2.0
+
 jobs:
   build:
     docker:
     - image: circleci/golang:1-node
 
-    env:
-      GO111MODULE: "on"
-
     steps:
       - checkout
-      - run: cd frontend && yarn install --offline
+      - go/load-cache:
+          key: v1
+      - restore_cache:
+          keys:
+          - v1-npm-deps-{{ checksum "frontend/yarn.lock" }}
+          - v1-npm-deps-
+      - run: cd frontend && yarn install
       - run: make format
       - run: make build
       - persist_to_workspace:
           root: .
           paths:
           - crochet
+      - go/save-cache:
+          key: v1
+      - save_cache:
+          key: v1-npm-deps-{{ checksum "frontend/yarn.lock" }}
+          paths:
+          - /home/circleci/.cache/yarn
 
   push_image:
     docker:
