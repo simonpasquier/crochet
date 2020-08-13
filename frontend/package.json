@@ -1,5 +1,5 @@
 {
-  "name": "webhook_ui",
+  "name": "crochet",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,10 +10,10 @@
   "dependencies": {
     "axios": "^0.19.0",
     "bootstrap": "^4.3.1",
-    "bootstrap-vue": "^2.0.0-rc.25",
+    "bootstrap-vue": "^2.16.0",
     "core-js": "^2.6.5",
     "moment": "^2.24.0",
-    "vue": "^2.6.10"
+    "vue": "^2.6.11"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.9.0",
@@ -24,7 +24,7 @@
     "eslint-plugin-vue": "^5.0.0",
     "node-sass": "^4.12.0",
     "sass-loader": "^7.1.0",
-    "vue-template-compiler": "^2.6.10"
+    "vue-template-compiler": "^2.6.11"
   },
   "eslintConfig": {
     "root": true,
