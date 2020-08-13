@@ -45,16 +45,6 @@ func main() {
 		wg.Done()
 	}()
 
-	// Setup HTTP handlers.
-	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		if req.Method != "GET" {
-			http.Error(w, fmt.Sprintf("method %q not allowed", req.Method), http.StatusMethodNotAllowed)
-			return
-		}
-		http.FileServer(assets.Assets).ServeHTTP(w, req)
-	})
-	http.HandleFunc("/metrics", promhttp.Handler().ServeHTTP)
-
 	apiDuration := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name: "crochet_http_requests_duration_seconds",
@@ -63,9 +53,22 @@ func main() {
 		[]string{"code", "method", "path"},
 	)
 	prometheus.MustRegister(apiDuration)
+
+	// Setup HTTP handlers.
+	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		if req.Method != "GET" {
+			http.Error(w, fmt.Sprintf("method %q not allowed", req.Method), http.StatusMethodNotAllowed)
+			return
+		}
+		http.FileServer(assets.Assets).ServeHTTP(w, req)
+	})
+
+	http.HandleFunc("/metrics", promhttp.Handler().ServeHTTP)
+
 	notifAPI := newNotificationAPI(ds)
 	notifDuration := apiDuration.MustCurryWith(prometheus.Labels{"path": "/api/notifications"})
 	http.Handle("/api/notifications/", promhttp.InstrumentHandlerDuration(notifDuration, http.HandlerFunc(notifAPI.Handle)))
+
 	incidentAPI := newIncidentAPI(ds)
 	incidentDuration := apiDuration.MustCurryWith(prometheus.Labels{"path": "/api/incidents"})
 	http.Handle("/api/incidents/", promhttp.InstrumentHandlerDuration(incidentDuration, http.HandlerFunc(incidentAPI.Handle)))

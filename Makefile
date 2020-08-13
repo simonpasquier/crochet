@@ -1,5 +1,5 @@
 .PHONY: build
-build: format test assets
+build: test format
 	GO111MODULE=on go build -tags netgo .
 
 .PHONY: format
@@ -7,7 +7,7 @@ format:
 	GO111MODULE=on go fmt ./...
 
 .PHONY: test
-test:
+test: assets
 	GO111MODULE=on go test ./...
 
 .PHONY: assets
